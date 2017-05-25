@@ -8,7 +8,7 @@
 #' @param qm:  maximum lag for MA (default=2)
 #'
 #' @return bnd returns a 2-column matrix of, respectively, the permanent and cyclical components in y
-#' @examples #' bndco(gl)   # Quarterly US log-GDP(1947:2008)
+#' @examples bndco(lrgdp,1,1)   # Quarterly US log-GDP(1947:2008) --> arima(1,1,0) data
 #' y <- rnorm(1:100)   # Level-Stationary --> Stop
 #' y <- cumsum(rnorm(1:100)) + (1:100)**3   # Non-Stationary 1st difference --> Stop
 #'
@@ -21,12 +21,7 @@
 #'
 #' @author Deepankar Basu, \email{dbasu@@econs.umass.edu}
 #' @author Fouad Ferdi, \email{fouad.ferdi@@univ-paris13.fr}
-
-
-#as.person(c(
- # "Fouad Ferdi <fouad.ferdi@univ-paris13.fr> [aut, cre]",
-  #"Deepankar Basu <dbasu@econs.umass.edu> [aut]"))
-
+#'
 #' @export
 bndco<- function(mod_data,pm=2,qm=2){
 
@@ -41,50 +36,32 @@ bndco<- function(mod_data,pm=2,qm=2){
   answer<-readline("Any visible time trend ? Y/N : ")
   if (substr(answer, 1, 1) == "y"){
     # Trend : Test for stationarity (ADF+KPSS)
-              #tadf<-ur.df(mod_data, type="trend",selectlags="AIC")
-              #tkpss<-ur.kpss(mod_data, type="tau",lags="long")
-
-    walou<-readline("answer is yes : Trend in ADF ...")
-
     tadf<-tseries::adf.test(mod_data)
     tkpss<-tseries::kpss.test(mod_data,"Trend")
   }
   else {
     # No-Trend : Test for stationarity (ADF+KPSS)
-                #tadf<-ur.df(mod_data, type="drift",selectlags="AIC")
-                #tkpss<-ur.kpss(mod_data, type="mu",lags="long")
-
-    walou<-readline("answer is no : notrend in ADF ...")
-
     tadf<-tseries::adf.test(mod_data)
     tkpss<-tseries::kpss.test(mod_data)
   }
 
-
-
-  walou<-readline("Check stationarity test...")
-
   # non-stationary levels : then 1st-level differentiation
   if ((tadf$p.value)>.05 & (tkpss$p.value)<.05){
      # Test for difference-stationnarity
-                  #tadf<-ur.df(mod_dataD, type="drift",selectlags="AIC")
-                  #tkpss<-ur.kpss(mod_dataD, type="mu",lags="long")
     tadfD<-tseries::adf.test(mod_dataD)
     tkpssD<-tseries::kpss.test(mod_dataD,"Trend")
-     # if 1st-level differences are non-stationary then STOP
+
+    # if 1st-level differences are non-stationary then STOP
     if ((tadfD$p.value)>.05 & (tkpssD$p.value)<.05) return("STOP! the series are non-stationnary in first difference")
   }
   # stationnary Level- thus use LEVELS (ANY SENS ??? ########### ?????)
     if ((tadf$p.value)<.05 & (tkpss$p.value)>.05) return("STOP! Series Level-stationary: decomposition still relevant ???" )
 
-
-
-
   # Order Selection ---------------------------------------------------------
   pvmax<-0
   for(i in 0:pm){
     for(j in 0:qm){
-      fit <- arima(mod_dataD, order=c(i,0,j),method = "ML")
+      fit <- stats::arima(mod_dataD, order=c(i,0,j),method = "ML")
       # p-value of Lung-Box t-stat Ho: independance of residuals
       pvalij <- Box.test(fit$residuals,lag = 8, type="Ljung-Box",fitdf=i+j+1)$p.value
       # Computed AIC
@@ -110,10 +87,10 @@ bndco<- function(mod_data,pm=2,qm=2){
   cat(text2)
 
   #Arma regression
-  m_arma<-arma(mod_dataD,order = c(p,q))
+  m_arma<-tseries::arma(mod_dataD,order = c(p,q))
   summary(m_arma)
   # Plot Diff. Series
-  plot.default(mod_dataD,type = "l")
+  plot.default(mod_dataD,type = "l",ylab = "1st Diff.")
   walou<-readline("Press any key to resume ...")
 
   # get theta & phi
@@ -145,8 +122,8 @@ bndco<- function(mod_data,pm=2,qm=2){
 
   # plot Permanent vs. Stochastic components
   par(mfrow=c(2,1))
-  plot.default(PermComp,type = "l")
-  plot.default(StochComp,type = "l")
+  ts.plot(PermComp,type = "l")
+  ts.plot(StochComp,type = "l")
   par(mfrow=c(1,1))
   return(invisible(cbind(PermComp,StochComp)))
 }

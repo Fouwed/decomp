@@ -28,7 +28,7 @@ Implements Beveridge and Nelson decomposition of series into a permanent
 component and a cyclical one.
 }
 \examples{
-#' bndco(gl)   # Quarterly US log-GDP(1947:2008)
+bndco(lrgdp,1,1)   # Quarterly US log-GDP(1947:2008) --> arima(1,1,0) data
 y <- rnorm(1:100)   # Level-Stationary --> Stop
 y <- cumsum(rnorm(1:100)) + (1:100)**3   # Non-Stationary 1st difference --> Stop
 
