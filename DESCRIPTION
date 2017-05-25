@@ -1,0 +1,14 @@
+Package: decomp
+Type: Package
+Title: Time Series Decomposition
+Version: 0.1.0
+Authors@R: c(person("Deepankar", "Basu", role = "aut",
+                    email = "dbasu@econs.umass.edu"),
+             person("Fouad", "Ferdi", role = c("aut", "cre"),
+                    email = "fouad.ferdi@univ-paris13.fr"))
+Description: Decomposition of series in two components : Permanent (stochastic trend) and Cyclical (irregular)
+Depends: tseries
+License: CC0
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
